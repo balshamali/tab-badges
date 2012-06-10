@@ -22,25 +22,30 @@ var g_badges = false;
 
 function onKeyDown(e) {
     setKeyState(e.which, true);
-    show_or_hide_badges();
+    show_or_hide_badges(false, true);
 };
 document.onkeydown = onKeyDown;
 
 function onKeyUp(e)
 {
     setKeyState(e.which, false);
-    show_or_hide_badges();  
+    show_or_hide_badges(false, true);  
 }
+
 document.onkeyup = onKeyUp;
 
 chrome.extension.onRequest.addListener(
     function(request, sender) {
+        // console.log("received request: ", request)
         if (request.title)
+        {
             // This is done because of a bug in which there needs to be 
             // some delay in setting the title to something else.
+            // console.log("setting timeout to change title to %s", request.title);
             setTimeout(function() {
                 changeTitle(request);
             }, 500);
+        }
         else
             console.log("ERROR! Please email biscim@gmail.com to fix!!! -- ", request);
 
@@ -76,37 +81,61 @@ function setKeyState(key, state)
         badges_extension_keys.shift_key = state;
 }
 
-function show_or_hide_badges()
+function show_or_hide_badges(newTab, allTabs)
 {
-    if (badges_extension_keys.ctrl_key == true && badges_extension_keys.shift_key == true)
-    {   
-        chrome.extension.sendRequest({getBadgeState:true}, function(response) {
-            g_badges = response.on;
-            console.log(response.on);
-            do_show_or_hide_badges();
-        });
-     }
+    // The request to send to the background script - 'badges.js'.
+    var request = {};
+    if (newTab)
+        request.newTab = true;
+    else if (badges_extension_keys.ctrl_key == true && badges_extension_keys.shift_key == true)
+        request.getBadgeState = true;
+    else
+        return;
+
+    // Send the request and show or hide badges based on the response. 
+    // console.log("sending newtab message, ", request)
+    chrome.extension.sendRequest(request, function(response) {
+        // console.log("got response ", response);
+        g_badges = response.on;
+        do_show_or_hide_badges(allTabs);
+    });
 }
 
-function do_show_or_hide_badges()
+function do_show_or_hide_badges(allTabs)
 {
     if (!g_badges)
-        show_badges();
+        show_badges(allTabs);
     else
-        hide_badges();
+        hide_badges(allTabs);
 }
 
-function show_badges()
+function show_badges(allTabs)
 {
-    chrome.extension.sendRequest({state:false, show:true});
+    // console.log("show_badges, allTabs: ", allTabs)
+    chrome.extension.sendRequest({show:true, allTabs:allTabs}, function(response){
+        // console.log("response from show_badges method: ", response);
+        setTimeout(function() {
+            changeTitle(request);
+        }, 500);
+    });
 }
 
-function hide_badges()
+function hide_badges(allTabs)
 {
-    chrome.extension.sendRequest({state:false, show:false});
+    // console.log("hide_badges")
+    chrome.extension.sendRequest({show:false, allTabs:allTabs});
 }
 
 function changeTitle(request)
 {
     document.title = request.title;
 }
+
+// ================================================================================== //
+// =============================== INITALIZATION ==================================== // 
+// ================================================================================== //
+
+// Dont' need to listen to document.onready or window.onload since these events
+// are fired before the content script 'capture_keyboard_events.js' is loaded.
+// Thus, we can execute do_show_or_hide_badges() immediately.
+show_or_hide_badges(true, false);
