@@ -40,4 +40,6 @@ Bug Fix: When multiple instances of browser windows are open, turning the extens
 Additions to consider
 ---------------------
 
-1. Make tab badges persistent as you refresh pages and open new pages.
+1. Make tab badges persistent as you refresh pages and open new pages. [done]
+2. Make tabs persistent when pulling in a new tab from another window.
+3. Make tabs persistent when pulling out a new tab from an existing window.
