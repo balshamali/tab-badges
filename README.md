@@ -43,3 +43,20 @@ Additions to consider
 1. Make tab badges persistent as you refresh pages and open new pages. [done]
 2. Make tabs persistent when pulling in a new tab from another window.
 3. Make tabs persistent when pulling out a new tab from an existing window.
+
+Feature request from Pete Soloway:
+----------------------------------
+
+I'm just writing to let you know that the Ctrl+Alt 
+keyboard shortcut doesn't seem to work on my Mac (I tried all the modifier keys but none seems to be an exact equivalent) 
+and to submit a feature request: instead of toggling the extension by pressing those keys, why not add a mode where the 
+labels appear whenever the Ctrl key is held down (Cmd on Mac) and then disappear as soon as the key is released. That gives 
+us the extension's full benefit while we're using the "Ctlr+#" shortcut, without cropping the tab labels when we're navigating 
+them by mouse. 
+
+Solution to implement:
+
+For my feature request to work, I think it would have to be mutually exclusive with the current key combination. 
+I can see three ways you might approach it:
+
+1. Add a simple Options screen where users can select which method they prefer.
