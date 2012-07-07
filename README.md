@@ -44,8 +44,8 @@ Additions to consider
 2. Make tabs persistent when pulling in a new tab from another window.
 3. Make tabs persistent when pulling out a new tab from an existing window.
 
-Feature request from Pete Soloway:
-----------------------------------
+Feature request from Pete Soloway (branchname: feature_1):
+----------------------------------------------------------
 
 I'm just writing to let you know that the Ctrl+Alt 
 keyboard shortcut doesn't seem to work on my Mac (I tried all the modifier keys but none seems to be an exact equivalent) 
