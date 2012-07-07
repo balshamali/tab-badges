@@ -12,24 +12,27 @@ var g_CTRL_KEY = 17;
 var g_ALT_KEY = 18;
 var badges_extension_keys = {
     ctrl_key: false,
-    shift_key: false
+    alt_key: false
 };
-var g_badges = false;
+// This keeps track if we are waiting for a response from the background page
+// since state is a little messed up when we send multiple events at once.
+// To avoid a race condition.
+var g_modifying = false;
 
 // ================================================================================== //
 // =============================== EVENT LISTENERS ================================== // 
 // ================================================================================== //
 
 function onKeyDown(e) {
-    setKeyState(e.which, true);
-    show_or_hide_badges(false, true);
+    var forceRename = setKeyState(e.which, true);
+    show_or_hide_badges(false, forceRename);
 };
 document.onkeydown = onKeyDown;
 
 function onKeyUp(e)
 {
-    setKeyState(e.which, false);
-    show_or_hide_badges(false, true);  
+    var forceRename = setKeyState(e.which, false, forceRename);
+    show_or_hide_badges(false, true, forceRename);  
 }
 
 document.onkeyup = onKeyUp;
@@ -45,27 +48,17 @@ chrome.extension.onRequest.addListener(
             setTimeout(function() {
                 changeTitle(request);
             }, 500);
+            // Reset g_modifying.
+            // To avoid a race condition that will set back to the original state put
+            // it in a setTimeout.
+            setTimeout(function() {
+                g_modifying = false;
+            }, 350);
         }
         else
-            console.log("ERROR! Please email biscim@gmail.com to fix!!! -- ", request);
-
-        // Now check if the badge extension has been clicked to turn off the 
-        // connections to the keyup and keydown or viceversa. 
-        /* Adding this will cause issues with multiple browser instances!
-        if (request.onBadge != undefined)
         {
-            if (request.onBadge)
-            {
-                document.onkeyup = onKeyUp;
-                document.onkeydown = onKeyDown;
-            }
-            else
-            {
-                document.onkeyup = null;
-                document.onkeydown = null;
-            }
+            console.log("ERROR! Please email biscim@gmail.com to fix!!! -- ", request);
         }
-        */
     }
 );
 
@@ -75,55 +68,30 @@ chrome.extension.onRequest.addListener(
 
 function setKeyState(key, state)
 {
+    var forceRename = false;
     if (g_CTRL_KEY == key)
+    {
         badges_extension_keys.ctrl_key = state;
+        forceRename = !state;
+    }
     if (g_ALT_KEY == key)
-        badges_extension_keys.shift_key = state;
+        badges_extension_keys.alt_key = state;
+
+    return forceRename;
 }
 
-function show_or_hide_badges(newTab, allTabs)
+function show_or_hide_badges(newTab, forceRename)
 {
-    // The request to send to the background script - 'badges.js'.
-    var request = {};
-    if (newTab)
-        request.newTab = true;
-    else if (badges_extension_keys.ctrl_key == true && badges_extension_keys.shift_key == true)
-        request.getBadgeState = true;
-    else
-        return;
-
-    // Send the request and show or hide badges based on the response. 
-    // console.log("sending newtab message, ", request)
-    chrome.extension.sendRequest(request, function(response) {
-        // console.log("got response ", response);
-        g_badges = response.on;
-        do_show_or_hide_badges(allTabs);
-    });
-}
-
-function do_show_or_hide_badges(allTabs)
-{
-    if (!g_badges)
-        show_badges(allTabs);
-    else
-        hide_badges(allTabs);
-}
-
-function show_badges(allTabs)
-{
-    // console.log("show_badges, allTabs: ", allTabs)
-    chrome.extension.sendRequest({show:true, allTabs:allTabs}, function(response){
-        // console.log("response from show_badges method: ", response);
-        setTimeout(function() {
-            changeTitle(request);
-        }, 500);
-    });
-}
-
-function hide_badges(allTabs)
-{
-    // console.log("hide_badges")
-    chrome.extension.sendRequest({show:false, allTabs:allTabs});
+    // A little optimization: Only send a request if keys.ctrl_key or keys.alt_key
+    // is true and we are not in the middle of a request. 'forceRename' will force
+    // a send to the client when we have a ctrl-remove key (see setKeyState for more
+    // details).
+    if ((badges_extension_keys.ctrl_key || badges_extension_keys.alt_key || newTab || forceRename) && !g_modifying)
+    {
+        g_modifying = true;
+        // console.log(newTab, "newTab", badges_extension_keys, "keys");
+        chrome.extension.sendRequest({keys:badges_extension_keys, newTab:newTab});
+    }
 }
 
 function changeTitle(request)
@@ -137,5 +105,10 @@ function changeTitle(request)
 
 // Dont' need to listen to document.onready or window.onload since these events
 // are fired before the content script 'capture_keyboard_events.js' is loaded.
-// Thus, we can execute do_show_or_hide_badges() immediately.
+// Thus, we can execute show_or_hide_badges() immediately. I have tested this recently
+// with opening a new tab pointing to www.google.com and it does *not* work. Seems like
+// google.com is not executing the content script on load; or maybe they are doing something
+// funny with their event handling logic? The tab renames after an extra tab is opened
+// and navigated to a valid url (very strange).
+// console.log("showing badges on new tab");
 show_or_hide_badges(true, false);
