@@ -49,7 +49,9 @@ function enableOrDisable(keys, newTab)
             case g_badgesType.TEMPORARY:
             {
                 // console.log(keys, "temporary");
-                if (keys.ctrl_key)
+                if (keys.ctrl_key == show_badge)
+                    return; // avoid changing the state and sending a message if we don't have to
+                else if (keys.ctrl_key)
                     show_badge = true;
                 else
                     show_badge = false;
