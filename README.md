@@ -60,3 +60,8 @@ For my feature request to work, I think it would have to be mutually exclusive w
 I can see three ways you might approach it:
 
 1. Add a simple Options screen where users can select which method they prefer.
+
+Issues with latest version
+--------------------------
+keydown event is fired continously with chrome on windows if you keep the key pressed. On Mac, keeping
+the keep pressed does not fire keydown continously.
