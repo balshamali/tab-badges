@@ -24,6 +24,13 @@ var g_modifying = false;
 // ================================================================================== //
 
 function onKeyDown(e) {
+    var key = e.which;
+    if ((key !== g_CTRL_KEY && key !== g_ALT_KEY) || 
+        (key === g_CTRL_KEY && badges_extension_keys.ctrl_key === true) ||
+        (key === g_ALT_KEY  && badges_extension_keys.alt_key  === true)) {
+            return; 
+    }
+    
     var forceRename = setKeyState(e.which, true);
     show_or_hide_badges(false, forceRename);
 };
@@ -72,7 +79,7 @@ function setKeyState(key, state)
     if (g_CTRL_KEY == key)
     {
         badges_extension_keys.ctrl_key = state;
-        forceRename = !state;
+        forceRename = true;
     }
     if (g_ALT_KEY == key)
         badges_extension_keys.alt_key = state;
@@ -89,6 +96,9 @@ function show_or_hide_badges(newTab, forceRename)
     if ((badges_extension_keys.ctrl_key || badges_extension_keys.alt_key || newTab || forceRename) && !g_modifying)
     {
         g_modifying = true;
+        // Make sure we reset g_modifying in cases where it gets stuck (for example, this can happen when we keep
+        // pressing on the ctrl key and then end up opening a new tab by pressing T).
+        setTimeout(function() { g_modifying = false; }, 350);
         // console.log(newTab, "newTab", badges_extension_keys, "keys");
         chrome.extension.sendRequest({keys:badges_extension_keys, newTab:newTab});
     }
