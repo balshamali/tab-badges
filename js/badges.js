@@ -58,6 +58,8 @@ function enableOrDisable(keys, newTab)
             case g_badgesType.NONE:
             default:
                 // console.log(keys, "none");
+                return; // return if we don't know what state we're in
+                        // This should never be reached.
                 break;
         }
 
