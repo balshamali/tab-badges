@@ -39,7 +39,7 @@ document.onkeydown = onKeyDown;
 function onKeyUp(e)
 {
     var forceRename = setKeyState(e.which, false, forceRename);
-    show_or_hide_badges(false, true, forceRename);  
+    show_or_hide_badges(false, forceRename);  
 }
 
 document.onkeyup = onKeyUp;
