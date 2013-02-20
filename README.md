@@ -61,6 +61,17 @@ I can see three ways you might approach it:
 
 1. Add a simple Options screen where users can select which method they prefer.
 
+DONE - merged into master
+
+Feature request from Pablo Cantero (branchname: feature_2):
+----------------------------------------------------------
+
+It would be awesome if the extension keeps the state when I close and open Chrome. Now, if I close Chrome then open it, I have to click in extension badge until the black color appears (CTRL + ALT doesn't work properly).
+
+Solution to implement:
+
+1. Use local storage
+
 Issues with latest version
 --------------------------
 keydown event is fired continously with chrome on windows if you keep the key pressed. On Mac, keeping
