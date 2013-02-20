@@ -36,7 +36,13 @@ function getBadgeState() {
     if (typeof(localStorage) == 'undefined' ) {
         console.log('Can\'t get badge state. Your browser does not support HTML5 localStorage. Try upgrading.');
     } else {
-        state = localStorage.getItem("badgeState") || g_badgesType.NONE;
+        var storedState = parseInt(localStorage.getItem("badgeState"));
+        if (storedState == undefined || storedState == null || isNaN(storedState)) {
+            state = g_badgesType.NONE;
+            storeBadgeState(state);
+        } else {
+            state = storedState;
+        }
         // console.log("state is ", state);
     }
 
@@ -64,6 +70,7 @@ function enableOrDisable(keys, newTab)
 {
     chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
         var show_badge = badges_on(tabs);
+        // console.log("g_extensionClicked is ", g_extensionClicked);
         switch (g_extensionClicked)
         {
             case g_badgesType.PERSISTENT:
@@ -76,12 +83,13 @@ function enableOrDisable(keys, newTab)
             case g_badgesType.TEMPORARY:
             {
                 // console.log(keys, "temporary");
-                if (keys.ctrl_key == show_badge)
+                if (keys.ctrl_key == show_badge) {
                     return; // avoid changing the state and sending a message if we don't have to
-                else if (keys.ctrl_key)
+                } else if (keys.ctrl_key) {
                     show_badge = true;
-                else
+                } else {
                     show_badge = false;
+                }
                 break;
             }
             case g_badgesType.NONE:
@@ -97,6 +105,7 @@ function enableOrDisable(keys, newTab)
         {
             var index = i + 1;
             var new_title = getOriginal(tabs[i].title);
+            // console.log(show_badge);
             if (show_badge)
                 new_title = "{" + index + "} - " + new_title;
             chrome.tabs.sendRequest(tabs[i].id, {title:new_title});
