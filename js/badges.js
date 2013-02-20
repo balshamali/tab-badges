@@ -10,11 +10,38 @@ var g_badgesType = {
     NONE: 2,       // Disable badges.
     MAX: 3         // For reference.
 }
-var g_extensionClicked = g_badgesType.NONE;
+var g_extensionClicked = getBadgeState();
 
 // ================================================================================== //
 // =================================== UTILITIES ==================================== // 
 // ================================================================================== //
+
+function storeBadgeState(state) {
+    if (typeof(localStorage) == 'undefined' ) {
+        console.log('Can\'t store badge state for next session. Your browser does not support HTML5 localStorage. Try upgrading.');
+    } else {
+        try {
+            localStorage.setItem("badgeState", state);
+        } catch (e) {
+            if (e == QUOTA_EXCEEDED_ERR) {
+                //data wasn’t successfully saved due to quota exceed so throw an error
+                console.log('Local Storage quota exceeded! - contact biscim@gmail.com.');
+            }
+        }
+    }
+}
+
+function getBadgeState() {
+    var state = g_badgesType.NONE
+    if (typeof(localStorage) == 'undefined' ) {
+        console.log('Can\'t get badge state. Your browser does not support HTML5 localStorage. Try upgrading.');
+    } else {
+        state = localStorage.getItem("badgeState") || g_badgesType.NONE;
+        // console.log("state is ", state);
+    }
+
+    return state;
+}
 
 function badges_on(tabs)
 {
@@ -87,6 +114,9 @@ function enableOrDisable(keys, newTab)
 chrome.browserAction.onClicked.addListener(
     function(tab) {
         g_extensionClicked = (g_extensionClicked + 1 < g_badgesType.MAX) ? g_extensionClicked + 1 : g_badgesType.PERSISTENT;
+        // Store the badgeState on the window's localStorage so that we can persist the state of
+        // the user for the next time he opens Chrome.
+        storeBadgeState(g_extensionClicked);
         var setIconPath = "images/off.png";
         var keys = {};
         switch (g_extensionClicked)
